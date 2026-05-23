@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Daily Tracker</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+
+body {
+  font-family: Arial;
+  background: linear-gradient(
+    135deg,
+    #020617,
+    #0f172a,
+    #111827
+  );
+  color: #f8fafc;
+  padding: 20px;
+}
+
+/* h1 {
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  font-size: 35px;
+  font-weight: 700;
+  color: #0f172a;
+  background: linear-gradient(90deg, #38bdf8, #6366f1);
+  padding: 12px 20px;
+  border-radius: 12px;
+  /* display: inline-block; */
+*/
+h1 {
+  font-size: 42px;
+  font-weight: 700;
+  background: linear-gradient(
+    90deg,
+    #38bdf8,
+    #818cf8,
+    #22d3ee
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 0 25px rgba(56,189,248,0.3);
+}
+
+
+.title-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+
+input, textarea {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  background: #334155;
+  color: #e2e8f0;
+}
+
+textarea {
+  height: 80px;
+}
+
+button {
+  background: linear-gradient(90deg, #38bdf8, #6366f1);
+  border: none;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+/* .task {
+  display: flex;
+  justify-content: space-between;
+  background: #334155;
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 6px;
+} */
+.task {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;   /* proper alignment */
+  background: #334155;
+  padding: 8px 12px;
+  margin-top: 6px;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+
+.task:hover {
+  background: #334155;
+  transform: translateY(-2px);
+}
+
+.task button {
+  width: auto;
+  margin-left: 5px;
+  padding: 5px 8px;
+}
+
+
+.entry {
+  background: #334155;
+  padding: 8px;          /* ↓ reduced from 10px */
+  margin-top: 8px;       /* ↓ less gap */
+  border-radius: 6px;
+  font-size: 14px;       /* ↓ smaller text */
+}
+
+
+.quote {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #e2e8f0; /* soft white */
+  padding: 12px 16px;
+  text-align: center;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  font-weight: 500;
+  border-left: 4px solid #38bdf8;
+}
+
+@media (max-width: 768px) {
+
+body {
+  padding: 12px;
+}
+
+.container {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+}
+
+h1 {
+  font-size: 28px;
+  text-align: center;
+  padding: 10px 16px;
+}
+
+.quote {
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 12px;
+}
+
+input,
+textarea {
+  font-size: 15px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+textarea {
+  height: 90px;
+}
+
+button {
+  width: 100%;
+  margin-top: 10px;
+  margin-left: 0;
+  padding: 12px;
+  font-size: 15px;
+  border-radius: 10px;
+}
+
+.task {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.task div {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.entry {
+  font-size: 13px;
+  padding: 10px;
+}
+
+#weeklyStats {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+#weekLabel {
+  font-size: 15px;
+  text-align: center;
+}
+
+canvas {
+  margin-top: 16px;
+  max-height: 300px;
+}
+}
+
+</style>
+</head>
+
+<body>
+
+  <div class="title-wrapper">
+    <h1>Daily Tracker</h1>
+  </div>
+
+<div class="container">
+
+<div class="quote" id="quoteBox"></div>
+
+<input type="date" id="dateInput">
+
+<textarea id="taskInput" placeholder="Enter Today's Tasks"></textarea>
+<button onclick="addTask()">Add Task</button>
+
+<div id="taskList"></div>
+
+<button onclick="saveDay()">Save Details</button>
+
+<h3>Recent History</h3>
+<div id="history"></div>
+<input type="date" id="searchDate">
+<button onclick="searchHistoryByDate()">
+ View History
+</button>
+<h3>Activity Trend</h3>
+<div id="weeklyStats" class="entry"></div>
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+">
+
+<button onclick="previousWeek()">⬅</button>
+
+<h3 id="weekLabel"></h3>
+
+<button onclick="nextWeek()">➡</button>
+
+</div>
+<canvas id="chart"></canvas>
+ <!-- <input type="week" id="weekPicker" onchange="drawChart()">
+
+<canvas id="chart"></canvas> -->
+
+</div>
+
+<script>
+
+let tasks = [];
+let editIndex = -1;
+
+const quotes = [
+ "Small steps daily lead to big results.",
+ "Consistency beats motivation.",
+ "Consistency creates results motivation cannot",
+ "It does not matter how slowly you go as long as you do not stop.",
+ "Discipline is choosing between what you want now and what you want most.",
+ "Small daily improvements over time lead to stunning results.",
+ "Success is the product of daily habits—not once-in-a-lifetime transformations.",
+ "Discipline is doing it when it’s boring, tiring, and inconvenient.",
+ "our life improves when your routines improve."
+];
+
+function setQuote() {
+ let d = new Date().getDate();
+ document.getElementById("quoteBox").innerText = quotes[d % quotes.length];
+} 
+
+function setToday() {
+ document.getElementById("dateInput").value =
+  new Date().toISOString().split("T")[0];
+}
+
+// ➕ Add or Update Task
+function addTask() {
+  let taskInput = document.getElementById("taskInput");
+  let value = taskInput.value.trim();
+
+  if (value === "") return;
+
+  let newTasks = value.split(/,|\n/).map(t => t.trim()).filter(t => t);
+
+  if (editIndex === -1) {
+    tasks.push(...newTasks);
+  } else {
+    tasks[editIndex] = newTasks[0];
+    editIndex = -1;
+  }
+
+  taskInput.value = "";
+  displayTasks();
+  autoSave(); // ⭐ NEW
+}
+
+// 📋 Show Tasks
+function displayTasks() {
+ let list = document.getElementById("taskList");
+ list.innerHTML = "";
+
+ tasks.forEach((t, i) => {
+  let div = document.createElement("div");
+  div.className = "task";
+
+  div.innerHTML = `
+    <span>${t}</span>
+    <div>
+      <button onclick="editTask(${i})">✎</button>
+      <button onclick="deleteTask(${i})">🗑</button>
+    </div>
+  `;
+
+  list.appendChild(div);
+ });
+}
+
+// ✏️ Edit Task
+function editTask(i) {
+ document.getElementById("taskInput").value = tasks[i];
+ editIndex = i;
+}
+
+// ❌ Delete Task
+function deleteTask(i) {
+  tasks.splice(i, 1);
+  displayTasks();
+  autoSave(); // ⭐ NEW
+}
+
+// 📜 History
+
+// function displayHistory() {
+//   let data = JSON.parse(localStorage.getItem("tracker")) || {};
+//   let history = document.getElementById("history");
+
+//   history.innerHTML = "";
+
+//   // Today's date
+//   let today = new Date();
+
+//   Object.keys(data).reverse().forEach(date => {
+
+//     let entryDate = new Date(date);
+
+//     // Difference in days
+//     let diffTime = today - entryDate;
+//     let diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+//     // Allow only last 2 days + today
+//     let canEdit = diffDays <= 2;
+
+//     let div = document.createElement("div");
+//     div.className = "entry";
+
+//     let tasksHTML = data[date]
+//       .map(t => `<li>${t}</li>`)
+//       .join("");
+
+//     div.innerHTML = `
+//       <strong>${date}</strong>
+
+//       ${
+//         canEdit
+//         ? `<button onclick="editDay('${date}')" style="float:right;">✎</button>`
+//         : `<span style="float:right; opacity:0.5;">🔒</span>`
+//       }
+
+//       <ul>${tasksHTML}</ul>
+//     `;
+
+//     history.appendChild(div);
+//   });
+// }
+
+function displayHistory() {
+
+let data = JSON.parse(localStorage.getItem("tracker")) || {};
+let history = document.getElementById("history");
+
+history.innerHTML = "";
+
+let today = new Date();
+
+Object.keys(data).reverse().forEach(date => {
+
+  let entryDate = new Date(date);
+
+  let diffTime = today - entryDate;
+  let diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+  // SHOW ONLY LAST 3 DAYS
+  if (diffDays <= 2) {
+
+    let div = document.createElement("div");
+    div.className = "entry";
+
+    let tasksHTML = data[date]
+      .map(t => `<li>${t}</li>`)
+      .join("");
+
+    div.innerHTML = `
+      <strong>${date}</strong>
+
+      <button onclick="editDay('${date}')"
+        style="float:right;">
+        ✎
+      </button>
+
+      <ul>${tasksHTML}</ul>
+    `;
+
+    history.appendChild(div);
+  }
+});
+}
+
+function searchHistoryByDate() {
+
+let data = JSON.parse(localStorage.getItem("tracker")) || {};
+
+let selectedDate =
+  document.getElementById("searchDate").value;
+
+let history =
+  document.getElementById("history");
+
+history.innerHTML = "";
+
+if (data[selectedDate]) {
+
+  let div = document.createElement("div");
+
+  let tasksHTML = data[selectedDate]
+    .map(t => `<li>${t}</li>`)
+    .join("");
+
+  div.innerHTML = `
+    <strong>${selectedDate}</strong>
+    <ul>${tasksHTML}</ul>
+  `;
+
+  history.appendChild(div);
+
+} else {
+
+  history.innerHTML =
+    "<p>No history found for selected date</p>";
+}
+}
+
+function loadTodayData() {
+  let data = JSON.parse(localStorage.getItem("tracker")) || {};
+  let today = document.getElementById("dateInput").value;
+
+  if (data[today]) {
+    tasks = [...data[today]];
+    displayTasks();
+  }
+}
+
+function autoSave() {
+  let date = document.getElementById("dateInput").value;
+  if (!date) return;
+
+  let data = JSON.parse(localStorage.getItem("tracker")) || {};
+  data[date] = tasks;
+
+  localStorage.setItem("tracker", JSON.stringify(data));
+
+  displayHistory();
+  drawChart();
+}
+
+
+function editDay(date) {
+
+let data = JSON.parse(localStorage.getItem("tracker")) || {};
+
+tasks = [...data[date]];
+
+document.getElementById("dateInput").value = date;
+
+displayTasks();
+}
+
+
+// 📊 Chart
+let currentWeekOffset = 0;
+
+// 📊 Weekly Chart
+function drawChart() {
+
+  let data = JSON.parse(localStorage.getItem("tracker")) || {};
+
+  let ctx = document.getElementById("chart").getContext("2d");
+
+  // Get current week's Monday
+  let today = new Date();
+
+  today.setDate(today.getDate() + (currentWeekOffset * 7));
+
+  let firstDay = new Date(today);
+
+  let day = firstDay.getDay();
+
+  // Monday as start
+  let diff = firstDay.getDate() - day + (day === 0 ? -6 : 1);
+
+  firstDay = new Date(firstDay.setDate(diff));
+
+  let labels = [];
+  let counts = [];
+  let productiveDates = [];
+
+  for (let i = 0; i < 7; i++) {
+
+    let d = new Date(firstDay);
+
+    d.setDate(firstDay.getDate() + i);
+
+    let dateStr = d.toISOString().split("T")[0];
+
+    labels.push(
+  d.toLocaleDateString("en-US", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short"
+  })
+);
+
+//Not working properly need to check
+productiveDates.push(
+  d.toLocaleDateString("en-US", {
+    day: "2-digit",
+    month: "short"
+  })
+);
+
+
+    counts.push(data[dateStr] ? data[dateStr].length : 0);
+  }
+// 📈 Weekly Stats
+
+let totalTasks = counts.reduce((a, b) => a + b, 0);
+
+let average =
+  (totalTasks / 7).toFixed(1);
+
+  let maxTasks = Math.max(...counts);
+
+// Get all productive days
+let productiveDays = productiveDates.filter(
+  (date, index) => counts[index] === maxTasks
+);
+// Convert array to string
+let productiveDay =
+  productiveDays.join(", ");
+
+document.getElementById("weeklyStats").innerHTML = `
+  <strong>📊 Weekly Summary</strong><br><br>
+
+  ✅ Tasks this week:
+  <strong>${totalTasks}</strong><br>
+
+  🔥 Most productive day:
+  <strong>${productiveDay}</strong><br>
+
+  📈 Average/day:
+  <strong>${average}</strong>
+`;
+  // Week title
+  let endDay = new Date(firstDay);
+  endDay.setDate(firstDay.getDate() + 6);
+
+  document.getElementById("weekLabel").innerText =
+    `${firstDay.toLocaleDateString()} - ${endDay.toLocaleDateString()}`;
+
+  if (window.myChart) window.myChart.destroy();
+
+  window.myChart = new Chart(ctx, {
+
+    type: "bar",
+
+    data: {
+      labels: labels,
+
+      datasets: [{
+        label: "Tasks per Day",
+        data: counts,
+        backgroundColor: counts.map(count => {
+
+if (count < 4) {
+  return "#ef4444"; // red
+}
+
+else if (count >= 4 && count <= 6) {
+  return "#f59e0b"; // orange
+}
+
+else {
+  return "#22c55e"; // green
+}
+
+}),
+        borderRadius: 8,
+        barThickness: 35
+      }]
+    },
+
+    options: {
+
+      plugins: {
+
+        legend: {
+          labels: { color: "#e2e8f0" }
+        }
+      },
+
+      scales: {
+
+        x: {
+          ticks: { color: "#e2e8f0" }
+        },
+
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: "#e2e8f0",
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
+}
+
+// ⬅ Previous Week
+function previousWeek() {
+  currentWeekOffset--;
+  drawChart();
+}
+
+// ➡ Next Week
+function nextWeek() {
+  currentWeekOffset++;
+  drawChart();
+}
+setQuote();
+setToday();
+loadTodayData(); // ⭐ NEW
+displayHistory();
+drawChart();
+
+</script>
+
+</body>
+</html>
